@@ -11,7 +11,7 @@
       push.default: current # push the current branch to update a branch with the same name on the receiving end. Works in both central and non-central workflows.
 
   handlers:
-  - name: purge cached system packages
+  - name: purge cached apt packages
     shell: apt-get clean
     sudo: yes
 
@@ -19,8 +19,9 @@
   - name: Update apt cache (just once)
     apt: update_cache=yes
     sudo: yes
+    when: ansible_os_family == "Debian"
 
-  - name: Install base packages
+  - name: Install base packages via apt
     apt: name={{item}} state=present
     with_items:
       - git
@@ -29,7 +30,8 @@
       - exuberant-ctags
       - python
     sudo: yes
-    notify: purge cached system packages
+    notify: purge cached apt packages
+    when: ansible_os_family == "Debian"
 
   - name: Set git user configuration
     shell: git config --global "{{item.key}}" "{{item.value}}"
