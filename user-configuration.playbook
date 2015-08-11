@@ -1,0 +1,47 @@
+# vi: set ft=yml
+---
+- hosts: all
+  sudo: no
+  vars:
+    dotfiles_dir: "{{ansible_user_dir}}/.dotfiles"
+    gitconfig:
+      user.name: "Nico Mandery"
+      user.email: "nico.mandery@dlr.de"
+      color.ui: true
+      push.default: current # push the current branch to update a branch with the same name on the receiving end. Works in both central and non-central workflows.
+
+  handlers:
+  - name: purge cached system packages
+    shell: apt-get clean
+    sudo: yes
+
+  tasks:
+  - name: Update apt cache (just once)
+    apt: update_cache=yes
+    sudo: yes
+
+  - name: Install base packages
+    apt: name={{item}} state=present
+    with_items:
+      - git
+      - vim
+      - htop
+      - exuberant-ctags
+      - python
+    sudo: yes
+    notify: purge cached system packages
+
+  - name: Set git user configuration
+    shell: git config --global "{{item.key}}" "{{item.value}}"
+    with_dict: "{{gitconfig}}"
+    
+
+  - name: Clone dotfiles from github
+    git: repo=http://github.com/nmandery/dotfiles dest={{dotfiles_dir}} update=yes
+    register: git_result
+
+  - name: Run dotfiles installer
+    shell: bash install.sh
+    args:
+      chdir: "{{dotfiles_dir}}"
+    when: git_result.changed
