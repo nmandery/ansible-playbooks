@@ -1,0 +1,20 @@
+# vi: set ft=yml
+---
+- hosts: all
+  sudo: yes
+  tasks:
+  - name: Uninstall software tracking user behavior and sending data to remote servers
+    apt: name={{item}} state=absent
+    with_items:
+      - whoopsie # crash reporter
+      - libwhoopsie0
+      - zeitgeist-core # uninstalling will break unity
+      - zeitgeist
+      - unity-lens-applications
+      - unity-lens-files
+      - unity-lens-friends
+      - unity-lens-music
+      - unity-lens-photos
+      - unity-lens-video
+      - geoclue # uninstalling will break unity time widgets
+    when: ansible_distribution == "Ubuntu"
