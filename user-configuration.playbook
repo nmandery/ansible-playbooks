@@ -10,6 +10,9 @@
       color.ui: true
       push.default: current # push the current branch to update a branch with the same name on the receiving end. Works in both central and non-central workflows.
 
+      # get a short description incl. dirty flag of the current work tree
+      alias.describe-id: 'describe --long --dirty --abbrev=10 --tags --always'
+
   handlers:
   - name: purge cached apt packages
     shell: apt-get clean
