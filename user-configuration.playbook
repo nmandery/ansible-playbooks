@@ -32,6 +32,7 @@
       - htop
       - exuberant-ctags
       - python
+      - bash-completion
     sudo: yes
     notify: purge cached apt packages
     when: ansible_os_family == "Debian"
