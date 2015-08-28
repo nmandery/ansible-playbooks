@@ -1,0 +1,35 @@
+# vi: set ft=yml
+#
+# on ubuntu grub might show  a bootmenu and wait for input after
+# a failed boot. this is highly undesirable on servers, so this playbook
+# attempts do deactivate this behavoir, when the GRUB_RECORDFAIL_TIMEOUT
+# is supported.
+#
+# sources:
+# - http://serverfault.com/questions/243343/headless-ubuntu-server-machine-sometimes-stuck-at-grub-menu
+# - http://wiki.hetzner.de/index.php/Grub2_recordfail
+---
+- hosts: all
+  sudo: yes
+  
+  handlers:
+  - name: update grub
+    command: update-grub
+
+  tasks:
+
+  - name: test if the GRUB_RECORDFAIL_TIMEOUT option is supported
+    shell: grep GRUB_RECORDFAIL_TIMEOUT /etc/grub.d/00_header
+    register: grep_result
+    when: ansible_distribution == "Ubuntu"
+
+  - name: set GRUB_RECORDFAIL_TIMEOUT option
+    lineinfile:
+      dest: /etc/default/grub
+      state: present
+      insertafter: EOF
+      regexp: '^GRUB_RECORDFAIL_TIMEOUT\w*=\w*\d+\w*$'
+      line: 'GRUB_RECORDFAIL_TIMEOUT=5'
+    when: (grep_result.stdout_lines|length > 0) and ansible_distribution == "Ubuntu"
+    notify:
+      - update grub
